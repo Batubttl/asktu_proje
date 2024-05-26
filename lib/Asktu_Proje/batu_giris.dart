@@ -1,15 +1,41 @@
+import 'package:asktu_proje/Asktu_Proje/batu_home.dart';
+import 'package:asktu_proje/Asktu_Proje/batu_kayit.dart';
 import 'package:flutter/material.dart';
 
-class GirisEkrani extends StatelessWidget {
+import 'auth/auth_service.dart';
+
+class GirisEkrani extends StatefulWidget {
+  const GirisEkrani({super.key});
+
+  @override
+  State<GirisEkrani> createState() => _GirisEkraniState();
+}
+
+class _GirisEkraniState extends State<GirisEkrani> {
+  late TextEditingController _emailController;
+  late TextEditingController _passwordController;
+  bool isLoading = false;
+
+  final _authService = AuthService();
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController();
+    _passwordController = TextEditingController();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor:
-          Color.fromRGBO(221, 234, 222, 1), // Arka plan rengi: gri tonu
+          const Color.fromRGBO(221, 234, 222, 1), // Arka plan rengi: gri tonu
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.pop(context); // Geri butonu
+          },
         ),
         title: const Text('ASKTU'),
         centerTitle: true,
@@ -23,25 +49,28 @@ class GirisEkrani extends StatelessWidget {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.account_circle, size: 80), // Profil ikonu
-                  const SizedBox(height: 10),
-                  const Text(
+                  Icon(Icons.account_circle, size: 80), // Profil ikonu
+                  SizedBox(height: 10),
+                  Text(
                     'ASKTU\'ya hoşgeldiniz,hemen giriş yapabilirsiniz.',
                     style: TextStyle(fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
               const SizedBox(height: 50),
-              const TextField(
-                decoration: InputDecoration(
-                  labelText: 'Kullanıcı Adı',
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 20),
-              const TextField(
+              TextField(
+                controller: _passwordController,
                 obscureText: true,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Şifre',
                   border: OutlineInputBorder(),
                 ),
@@ -52,7 +81,12 @@ class GirisEkrani extends StatelessWidget {
                 children: [
                   TextButton(
                     onPressed: () {
-                      // Kayıt ol sayfasına yönlendirme işlemleri burada yapılabilir
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const KayitOlEkrani(),
+                        ),
+                      );
                     },
                     child: const Text(
                       'Hemen Kayıt Ol!',
@@ -70,8 +104,32 @@ class GirisEkrani extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  // Giriş yap işlemi burada gerçekleştirilebilir
+                onPressed: () async {
+                  try {
+                    setState(() {
+                      isLoading = true;
+                    });
+                    await _authService.signInWithEmailAndPassword(
+                      email: _emailController.text,
+                      password: _passwordController.text,
+                    );
+
+                    if (mounted) {
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HomeScreen(),
+                          ),
+                          (route) => false);
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(e.toString())),
+                    );
+                  }
+                  setState(() {
+                    isLoading = false;
+                  });
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
@@ -79,14 +137,29 @@ class GirisEkrani extends StatelessWidget {
                     borderRadius:
                         BorderRadius.circular(30), // Düğme kenar yuvarlaklığı
                   ),
-                  padding: EdgeInsets.symmetric(horizontal: 100, vertical: 20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 100,
+                    vertical: 20,
+                  ),
                 ),
-                child: Text('Giriş Yap'),
+                child: isLoading
+                    ? const SizedBox.square(
+                        dimension: 20,
+                        child: CircularProgressIndicator(color: Colors.white),
+                      )
+                    : const Text('Giriş Yap'),
               ),
             ],
           ),
         ),
       ), // Giriş ekranı sınıfını çağırıyoruz
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }
