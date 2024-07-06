@@ -16,7 +16,7 @@ class _AnaEkranState extends State<AnaEkran> {
   late Stream<StepCount> stepCountStream;
   late Stream<PedestrianStatus> pedestrianStatusStream;
   String status = '?';
-  int steps = 0;
+  int steps = 3452;
   final maxSteps = 10000;
   double caloriesBurned = 0;
   final maxCaloriesBurned = 642;
@@ -112,7 +112,7 @@ class _AnaEkranState extends State<AnaEkran> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("ASKTU"),
+        title: const Text("ASTKU"),
         centerTitle: true,
       ),
       body: Center(
